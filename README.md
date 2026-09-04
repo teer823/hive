@@ -35,7 +35,7 @@ Copy the files from `skills/` to your AI assistant's skills/agents folder:
 
 | Tool | Folder |
 |---|---|
-| Claude Code | `~/.claude/agents/` |
+| Claude Code | `~/.claude/commands/` |
 | Cursor | `.cursor/rules/` or agent config |
 | Copilot | Workspace instructions or agent config |
 
