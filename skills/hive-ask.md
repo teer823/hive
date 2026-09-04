@@ -22,11 +22,15 @@ If no colleague is named, use the `topics` field in members.yml to suggest the b
    - If no colleague named: look at the request topic and match against each member's `topics` list. Suggest the best match and ask the user to confirm.
    - If multiple members match the topic: list them with their `role` and `team` and let the user choose.
 
-4. **Search Wiki for existing answer**
+4. **Search knowledge archive for existing answer**
    ```
-   gh api /repos/<repo>/wiki/pages 2>/dev/null
+   gh api /repos/<repo>/contents/knowledge --jq '.[].name' 2>/dev/null
    ```
-   If relevant wiki pages exist, surface them and ask if the user still wants to create an issue.
+   If relevant pages exist, fetch and read the content:
+   ```
+   gh api /repos/<repo>/contents/knowledge/<file> --jq '.content' | base64 -d
+   ```
+   Surface any relevant pages to the user and ask if they still want to create an issue.
 
 5. **Check for duplicate open issues**
    ```
