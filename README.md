@@ -4,48 +4,55 @@
 
 **hive** lets you send help requests to colleagues through GitHub Issues, get AI-drafted answers, and build a shared knowledge archive — all using portable skill files that work with Claude Code, Copilot, Cursor, or any AI assistant that can run shell commands.
 
+No real-time connection needed. Everyone works at their own pace.
+
 ---
 
 ## How it works
 
-1. You ask a colleague for help → a GitHub Issue is created in your team's private fork
-2. Their AI assistant picks it up, drafts an answer, and presents it for approval
-3. They post the answer as a comment → issue closed
-4. Valuable answers get promoted to the GitHub Wiki → shared knowledge archive
-
-No real-time connection needed. Everyone participates at their own pace.
+```
+You                          Colleague
+ │                               │
+ ├─ /hive-ask @colleague         │
+ │   └─ GitHub Issue created ────┤
+ │                               ├─ /hive-inbox (polls every 15 min)
+ │                               ├─ AI drafts answer
+ │                               ├─ Colleague approves
+ │                               └─ Comment posted, issue closed
+ │                               │
+ ├─ /hive-check ─────────────────┤
+ │   └─ Reply surfaced           │
+ │                               │
+ └─ Valuable answers promoted to GitHub Wiki (shared archive)
+```
 
 ---
 
-## Setup
+## Quick start (team owner)
 
-### Prerequisites
-- [GitHub CLI (`gh`)](https://cli.github.com/) installed and authenticated (`gh auth login`)
-- Access to a forked team repo (see **Forking for your team** below)
+### 1. Prerequisites
+- Install [GitHub CLI](https://cli.github.com/): `brew install gh`
+- Authenticate: `gh auth login`
 
-### 1. Fork for your team
-Fork this repo to a **private** repo for your team:
+### 2. Fork for your team
 ```
-gh repo fork teer823/hive --clone --fork-name <your-team>-hive
+gh repo fork teer823/hive --fork-name <your-team>-hive
+gh repo clone <your-github-username>/<your-team>-hive
 ```
-Or create a new private repo and copy the `skills/` folder.
 
-Then run `/hive-setup` once as the owner to initialize labels, milestones, and the wiki. Safe to re-run if needed.
-
-### 2. Copy skill files to your AI tool
-Copy the files from `skills/` to your AI assistant's skills/agents folder:
+### 3. Install skills
+Copy `skills/*.md` to your AI assistant's commands folder:
 
 | Tool | Folder |
 |---|---|
 | Claude Code | `~/.claude/commands/` |
-| Cursor | `.cursor/rules/` or agent config |
-| Copilot | Workspace instructions or agent config |
+| Cursor | `.cursor/rules/` |
+| Copilot | Workspace instructions |
 
-### 3. Set up your local roster
-Create `~/.hive/roster.yml`:
+### 4. Create your roster
 ```yaml
 # ~/.hive/roster.yml
-repo: <github-username>/<your-team>-hive   # your team's private fork
+repo: <your-github-username>/<your-team>-hive
 me: <your-github-username>
 
 members:
@@ -55,45 +62,58 @@ members:
     github: bob-gh
 ```
 
-### 4. Start receiving requests
-Run `/hive-inbox` in your AI assistant. It will poll for issues assigned to you every 15 minutes.
+### 5. Initialize the repo (owner only, once)
+```
+/hive-setup
+```
+Creates labels, milestones, and wiki. Safe to re-run.
+
+### 6. Invite colleagues
+```
+/hive-invite
+```
+Sends a GitHub collaborator invite and outputs ready-to-share onboarding instructions.
 
 ---
 
 ## Skills
 
-| Skill | Who runs it | What it does |
+| Skill | Who | What it does |
 |---|---|---|
-| `hive-setup` | Owner, once | Initialize labels, milestone, and wiki on a fresh fork |
-| `hive-ask` | Anyone | Send a help request to a colleague |
-| `hive-inbox` | Anyone | Poll for and answer requests assigned to you |
-| `hive-check` | Anyone | Check replies on your open requests |
-| `hive-tidy` | Anyone | Clean up stale issues, promote answers to wiki |
-| `hive-invite` | Owner | Invite a colleague as a collaborator |
+| `/hive-setup` | Owner, once | Initialize labels, milestones, wiki on a fresh fork |
+| `/hive-invite` | Owner | Invite a colleague + generate onboarding instructions |
+| `/hive-ask` | Anyone | Send a help request to a colleague |
+| `/hive-inbox` | Anyone | Poll for requests assigned to you, draft answers |
+| `/hive-check` | Anyone | Check replies on requests you sent |
+| `/hive-tidy` | Anyone | Clean up stale issues, promote answers to wiki |
 
 ---
 
-## Forking for your team
+## For new participants
 
-The **public `hive` repo** contains only the generic protocol and skill files — no team data, no usernames.
+If you were invited to a team's hive repo, see the `ONBOARDING.md` file in that repo — it has a single copy-paste prompt you can give your AI assistant to get set up automatically.
 
-Your **private team fork** is where:
-- Issues (help requests) live
-- GitHub Wiki (knowledge archive) lives
-- Team-specific skill customizations live (optional)
+---
 
-Protocol improvements should be PRed back to this repo. Team data stays private.
+## Two-repo model
+
+| Repo | Visibility | What lives here |
+|---|---|---|
+| **`hive`** (this repo) | Public | Protocol spec, generic skill files |
+| **`<team>-hive`** (your fork) | Private | Issues, Wiki, your team's data |
+
+Team data stays private. Protocol improvements go back upstream via PR.
 
 ---
 
 ## Contributing
 
 PRs welcome for:
-- Improving skill instructions for better portability
-- Adding support for new AI tools
-- Protocol improvements (new labels, status flows, etc.)
+- Skill improvements and portability fixes
+- Support for new AI tools
+- Protocol improvements (labels, status flows, etc.)
 
-Please keep skill files tool-agnostic — no Claude-specific syntax.
+Keep skill files tool-agnostic — no Claude-specific syntax.
 
 ---
 
