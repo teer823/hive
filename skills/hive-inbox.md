@@ -5,6 +5,12 @@ Poll for help requests assigned to you and draft answers for your approval.
 ## When to use
 When the user runs `/hive-inbox`, or when running as a `/loop` every 15 minutes.
 
+**Recommended:** Run as a loop at the start of your session:
+```
+/loop 15m /hive-inbox
+```
+Stop it when you close your session. This polls every 15 minutes while you work without needing a persistent background process.
+
 ## Steps
 
 1. **Read roster**
