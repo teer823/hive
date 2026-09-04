@@ -19,6 +19,13 @@ If no colleague is named, use the `topics` field in members.yml to suggest the b
 
 3. **Resolve assignee**
    - If the user named a colleague: look up their `github` username from members.yml. Stop if not found — suggest `/hive-sync` to refresh.
+     - **Topic mismatch guardrail:** If the colleague's `topics` list does not include the request's topic, warn the user:
+       ```
+       ⚠️  Joke's topics are [devops, integration] — this looks like a design question.
+       Better match: Lookchin (Designer, topics: design, ux-ui, figma)
+       Still send to Joke? (yes / reassign to Lookchin)
+       ```
+       Let the user decide — do not override their choice.
    - If no colleague named: look at the request topic and match against each member's `topics` list. Suggest the best match and ask the user to confirm.
    - If multiple members match the topic: list them with their `role` and `team` and let the user choose.
 
