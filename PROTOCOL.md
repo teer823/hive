@@ -6,16 +6,27 @@ This document defines the canonical schema for hive. All skill files and tool ad
 
 ## Roster
 
-Each participant maintains a local roster at `~/.hive/roster.yml`. The repo contains no central member list.
+Each participant maintains a local config at `~/.hive/roster.yml` (personal only — `repo` and `me`).
+The shared member list lives in `members.yml` in the team's private fork — visible to all collaborators.
 
+### Local config (`~/.hive/roster.yml`)
 ```yaml
 repo: <github-username>/<team>-hive   # team's private fork
 me: <your-github-username>
-
-members:
-  - name: <display-name>              # human-friendly name used in skills
-    github: <github-username>         # GitHub username for issue assignment
 ```
+
+### Shared member list (`members.yml` in repo)
+```yaml
+members:
+  - name: <display-name>        # human-friendly name used in skills (required)
+    github: <github-username>   # GitHub username for issue assignment (required)
+    role: <job title>           # e.g. "Solution Architect" (optional)
+    team: <team or squad>       # e.g. "DevOps", "Design" (optional)
+    topics: [<topic>, ...]      # topic areas they know well — maps to hive topic labels (optional)
+                                # valid values: auth, architecture, integration, devops, general
+```
+
+The `topics` field enables smart routing — `/hive-ask` can suggest the best assignee based on the request's topic.
 
 ---
 

@@ -4,6 +4,7 @@ Send a help request to a colleague via a GitHub Issue on the team's hive repo.
 
 ## When to use
 When the user says "ask [colleague]", "send a request to [colleague]", or "hive ask".
+If no colleague is named, use the `topics` field in members.yml to suggest the best person.
 
 ## Steps
 
@@ -15,29 +16,32 @@ When the user says "ask [colleague]", "send a request to [colleague]", or "hive 
    ```
    gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d
    ```
-   Parse the `members` list to find the named colleague's `github` username.
-   If the colleague is not found, stop and tell the user. Suggest running `/hive-sync` to refresh.
 
-3. **Search Wiki for existing answer**
+3. **Resolve assignee**
+   - If the user named a colleague: look up their `github` username from members.yml. Stop if not found — suggest `/hive-sync` to refresh.
+   - If no colleague named: look at the request topic and match against each member's `topics` list. Suggest the best match and ask the user to confirm.
+   - If multiple members match the topic: list them with their `role` and `team` and let the user choose.
+
+4. **Search Wiki for existing answer**
    ```
    gh api /repos/<repo>/wiki/pages 2>/dev/null
    ```
    If relevant wiki pages exist, surface them and ask if the user still wants to create an issue.
 
-4. **Check for duplicate open issues**
+5. **Check for duplicate open issues**
    ```
    gh issue list --repo <repo> --label hive-ask --state open --json number,title
    ```
    If a similar title exists, show it and ask if the user wants to proceed anyway.
 
-5. **Confirm request details with user**
+6. **Confirm request details with user**
    Show:
-   - Assignee: <colleague display name> (@<github-username>)
+   - Assignee: <display name> (<role>, <team>) @<github-username>
    - Topic: <topic label>
    - Summary of the request body
    Ask the user to confirm before creating.
 
-6. **Create the issue**
+7. **Create the issue**
    ```
    gh issue create \
      --repo <repo> \
@@ -55,10 +59,11 @@ When the user says "ask [colleague]", "send a request to [colleague]", or "hive 
    ```
    If the current quarter milestone exists, add `--milestone <quarter>`.
 
-7. **Report back**
+8. **Report back**
    Tell the user the issue URL and number.
 
 ## Notes
 - Keep the issue body tool-agnostic — no Claude-specific formatting
 - If no topic is specified, use `topic:general`
-- Always read members from the repo's `members.yml`, not local file
+- Always read members from the repo's `members.yml`, not a local file
+- Smart routing is a suggestion only — the user always confirms the assignee

@@ -1,9 +1,9 @@
 # hive-sync
 
-Sync the shared member list from the repo into your local knowledge.
+Show the current team member list from the shared repo.
 
 ## When to use
-When the user says "sync hive", "update hive members", or runs `/hive-sync`.
+When the user says "sync hive", "show hive members", "who's in hive", or runs `/hive-sync`.
 Also suggest running this when a colleague is not found during `/hive-ask`.
 
 ## Steps
@@ -16,18 +16,24 @@ Also suggest running this when a colleague is not found during `/hive-ask`.
    gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d
    ```
 
-3. **Display current member list**
-   Show a clean list:
+3. **Display team directory**
+   Show a rich member list:
    ```
-   hive members (teer823/ibmdt-hive):
-   - Tle (@teer823)
-   - Lookchin (@lukeatdesign)
+   hive team — teer823/ibmdt-hive
+
+   Name        GitHub           Role                  Team      Topics
+   ─────────────────────────────────────────────────────────────────────
+   Tle         @teer823         Portfolio Architect   IBMDT     architecture, auth, integration
+   Lookchin    @lukeatdesign     Designer             Design    general
+   Joke        @wsaikliang      DevOps Engineer       DevOps    devops, integration
    ```
+   For members with no optional fields, show only name and GitHub.
 
 4. **Report**
-   Tell the user: "Member list is up to date. Use these names with /hive-ask."
+   Tell the user: "Use these names with /hive-ask. Topic-based routing will suggest the best match automatically."
 
 ## Notes
 - This skill is read-only — it does not modify any files
-- The member list lives in the repo's `members.yml` and is always up to date for collaborators
+- members.yml in the repo is always up to date for collaborators
 - Run this when a colleague name isn't recognized in `/hive-ask`
+- The `topics` column shows what each person knows well — used by `/hive-ask` for smart routing
