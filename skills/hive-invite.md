@@ -7,30 +7,27 @@ Invite a colleague to collaborate on the team's hive repo.
 ## When to use
 When the user says "invite [name] to hive", "add [colleague] to hive", or runs `/hive-invite`.
 
+## Arguments
+```
+/hive-invite <github-username> <display-name>
+```
+Both arguments are required. Only these two are collected — use `/hive-update` to add role, team, and topics later.
+
 ## Steps
 
 1. **Read local roster**
    Read `~/.hive/roster.yml`. Extract `repo` and `me`.
 
 2. **Collect colleague details**
-   Ask the user for:
-   - Display name (e.g. "Somchai") — required
-   - GitHub username — required
-   - Role (e.g. "Solution Architect") — optional, press Enter to skip
-   - Team (e.g. "DevOps", "Design") — optional, press Enter to skip
-   - Topics they know well — optional, comma-separated from: `auth`, `architecture`, `integration`, `devops`, `general`
-
-   If the user already provided name and GitHub username in their message, use those directly and only ask for the optional metadata fields.
+   Use `<github-username>` and `<display-name>` from the arguments.
+   If either is missing, ask for only those two — nothing else.
 
 3. **Check if user is owner**
-   Run:
    ```
    gh api /repos/<repo> --jq '.owner.login'
    ```
-   Compare to `me` from the local roster.
-
-   - If `me` == owner → follow **Owner flow** below
-   - If `me` != owner → follow **Participant flow** below
+   - If `me` == owner → **Owner flow**
+   - If `me` != owner → **Participant flow**
 
 ---
 
@@ -41,17 +38,12 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    - Repo: <repo>
    - Name: <display name>
    - GitHub: <github-username>
-   - Role: <role or "—">
-   - Team: <team or "—">
-   - Topics: <topics or "—">
    - Permission: write
    Ask: "Send invite and add to members.yml? (yes / no)"
 
 5. **Send the invite**
    ```
-   gh api \
-     --method PUT \
-     /repos/<repo>/collaborators/<github-username> \
+   gh api --method PUT /repos/<repo>/collaborators/<github-username> \
      --field permission=write
    ```
 
@@ -61,13 +53,10 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    gh api /repos/<repo>/contents/members.yml --jq '.sha' > /tmp/hive-members-sha
    gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d > /tmp/hive-members.yml
    ```
-   Append new member (include only fields that were provided):
+   Append new member (name and github only):
    ```yaml
      - name: <display name>
        github: <github-username>
-       role: <role>        # omit if not provided
-       team: <team>        # omit if not provided
-       topics: [<topics>]  # omit if not provided
    ```
    Push updated file:
    ```
@@ -79,7 +68,7 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    ```
 
 7. **Share onboarding instructions**
-   Tell the user: "Invite sent to <display name> (@<github-username>) and added to members.yml. Share these steps with them:"
+   Tell the user: "Invite sent to <display name> (@<github-username>) and added to members.yml. Share these steps:"
 
    ---
    **hive setup for new participants:**
@@ -101,32 +90,23 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 4. **Confirm the request**
    Show:
    - Requesting invite for: <display name> (@<github-username>)
-   - Role / Team / Topics if provided
    - A permission request will be sent to the repo owner
    Ask: "Send this request to the owner? (yes / no)"
 
 5. **Create a permission-request issue assigned to owner**
-   Fetch owner username:
-   ```
-   gh api /repos/<repo> --jq '.owner.login'
-   ```
-   Create issue:
    ```
    gh issue create \
      --repo <repo> \
      --title "[ASK] Permission to invite @<github-username>" \
      --body "## Request
-   Requesting permission to invite a new member to ibmdt-hive.
+   Requesting permission to invite a new member.
 
    - **Name:** <display name>
    - **GitHub:** @<github-username>
-   - **Role:** <role or not provided>
-   - **Team:** <team or not provided>
-   - **Topics:** <topics or not provided>
    - **Requested by:** @<me>
 
    ## Context
-   Please approve by running: /hive-invite <github-username> <display name>
+   Approve by running: /hive-invite <github-username> <display name>
 
    ## Topic
    general" \
@@ -135,12 +115,11 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    ```
 
 6. **Report back**
-   Tell the user: "Permission request sent to the owner. They'll be notified via /hive-inbox and can approve by running /hive-invite."
+   Tell the user: "Permission request sent to the owner. They'll be notified via /hive-inbox."
 
 ---
 
 ## Notes
+- Use `/hive-update` to add or change role, team, and topics for any member after invite
 - Only the repo owner can send the actual GitHub invite — participants must request permission
 - The invite expires after 7 days if not accepted
-- members.yml in the repo is the source of truth — all collaborators see it automatically
-- Optional metadata fields (role, team, topics) can be added later by editing members.yml directly
