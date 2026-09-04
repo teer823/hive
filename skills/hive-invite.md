@@ -13,11 +13,14 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    Read `~/.hive/roster.yml`. Extract `repo` and `me`.
 
 2. **Collect colleague details**
-   Ask the user for both:
-   - Display name (e.g. "Somchai") — used in members.yml
-   - GitHub username — used for the invite
+   Ask the user for:
+   - Display name (e.g. "Somchai") — required
+   - GitHub username — required
+   - Role (e.g. "Solution Architect") — optional, press Enter to skip
+   - Team (e.g. "DevOps", "Design") — optional, press Enter to skip
+   - Topics they know well — optional, comma-separated from: `auth`, `architecture`, `integration`, `devops`, `general`
 
-   If the user already provided these in their message, use those values directly without asking again.
+   If the user already provided name and GitHub username in their message, use those directly and only ask for the optional metadata fields.
 
 3. **Check if user is owner**
    Run:
@@ -38,6 +41,9 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    - Repo: <repo>
    - Name: <display name>
    - GitHub: <github-username>
+   - Role: <role or "—">
+   - Team: <team or "—">
+   - Topics: <topics or "—">
    - Permission: write
    Ask: "Send invite and add to members.yml? (yes / no)"
 
@@ -55,10 +61,13 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    gh api /repos/<repo>/contents/members.yml --jq '.sha' > /tmp/hive-members-sha
    gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d > /tmp/hive-members.yml
    ```
-   Append new member:
+   Append new member (include only fields that were provided):
    ```yaml
      - name: <display name>
        github: <github-username>
+       role: <role>        # omit if not provided
+       team: <team>        # omit if not provided
+       topics: [<topics>]  # omit if not provided
    ```
    Push updated file:
    ```
@@ -92,6 +101,7 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 4. **Confirm the request**
    Show:
    - Requesting invite for: <display name> (@<github-username>)
+   - Role / Team / Topics if provided
    - A permission request will be sent to the repo owner
    Ask: "Send this request to the owner? (yes / no)"
 
@@ -110,10 +120,13 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 
    - **Name:** <display name>
    - **GitHub:** @<github-username>
+   - **Role:** <role or not provided>
+   - **Team:** <team or not provided>
+   - **Topics:** <topics or not provided>
    - **Requested by:** @<me>
 
    ## Context
-   Please approve by running /hive-invite <github-username> <display name> if you agree.
+   Please approve by running: /hive-invite <github-username> <display name>
 
    ## Topic
    general" \
@@ -130,3 +143,4 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 - Only the repo owner can send the actual GitHub invite — participants must request permission
 - The invite expires after 7 days if not accepted
 - members.yml in the repo is the source of truth — all collaborators see it automatically
+- Optional metadata fields (role, team, topics) can be added later by editing members.yml directly
