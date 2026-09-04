@@ -70,7 +70,7 @@ Always prefixed with `[ASK]`.
 |---|---|
 | `hive-ask` | All help requests — primary filter |
 | `hive-answered` | Has a usable answer in comments |
-| `hive-promoted` | Answer promoted to GitHub Wiki |
+| `hive-promoted` | Answer promoted to /knowledge archive |
 | `hive-needs-input` | Requester needs to clarify before answer is possible |
 | `hive-no-ai` | Human-only — do not auto-draft answer |
 
@@ -123,15 +123,17 @@ Promoted: no
 
 ---
 
-## Knowledge Archive (GitHub Wiki)
+## Knowledge Archive (`/knowledge` folder)
+
+Promoted answers live in the `knowledge/` folder of the team's private fork — markdown files, readable on GitHub, searchable via `gh` CLI.
 
 When an answer is worth keeping:
 
-1. Create a Wiki page: `<Topic Title>.md`
+1. Create `knowledge/<slug>.md` in the repo
 2. Add label `hive-promoted` to the issue and close it
-3. Link the Wiki page in the issue body
+3. Update `knowledge/README.md` index with a one-liner entry
 
-### Wiki page format
+### Knowledge page format
 
 ```markdown
 # <Topic Title>
@@ -145,18 +147,18 @@ When an answer is worth keeping:
 <full answer>
 
 ## Related
-- [[Other Topic]]
+- [Other Topic](other-topic.md)
 - Issue #<n>
 ```
 
-### Wiki Home page
+### Knowledge index (`knowledge/README.md`)
 
-`Home.md` serves as the archive index. Add a one-liner entry for each promoted page:
+Serves as the archive index. Add a one-liner for each promoted page:
 
 ```markdown
-## Archive Index
+## Index
 
-- [[Topic Title]] — one-line summary (from #<issue-number>)
+- [Topic Title](topic-title.md) — one-line summary (from #<issue-number>)
 ```
 
 ---
@@ -165,10 +167,10 @@ When an answer is worth keeping:
 
 To prevent unbounded issue growth:
 
-1. **Archive pre-check** — before creating an issue, search the Wiki for an existing answer
+1. **Archive pre-check** — before creating an issue, search `/knowledge` for an existing answer
 2. **Duplicate detection** — search open issues for similar titles before creating
 3. **Quarterly milestones** — every issue tagged with a quarter milestone (e.g. `2026-Q3`)
-4. **`hive-tidy`** — maintenance skill that closes stale answered issues and flags unanswered ones
+4. **`/hive-tidy`** — maintenance skill that closes stale answered issues, flags unanswered ones, and promotes answers to `/knowledge`
 
 ---
 
@@ -176,9 +178,9 @@ To prevent unbounded issue growth:
 
 | Tier | Can do |
 |---|---|
-| **Owner** | Invite, ask, answer, promote to wiki |
-| **Participant** | Ask, answer, promote to wiki |
+| **Owner** | Invite, ask, answer, promote to /knowledge |
+| **Participant** | Ask, answer, promote to /knowledge, request invites |
 
 - No one can self-add. Join by invitation from the repo owner.
-- Each person's local roster reflects only who they've chosen to work with.
-- The repo itself contains no central member list.
+- Each person's local config reflects only `repo` and `me` — member list is shared via `members.yml`.
+- The repo itself contains no central member list beyond `members.yml`.

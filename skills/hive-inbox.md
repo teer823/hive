@@ -32,9 +32,14 @@ Stop it when you close your session. This polls every 15 minutes while you work 
    a. **Check for hive-no-ai label**
       If the issue has label `hive-no-ai`, skip it and notify the user: "Issue #<n> is marked human-only — please reply manually."
 
-   b. **Search Wiki for existing answer**
-      Run: `gh api /repos/<repo>/git/trees/HEAD:wiki --jq '.tree[].path' 2>/dev/null`
-      If a relevant wiki page exists, include it as a source in your draft.
+   b. **Search knowledge archive for existing answer**
+      ```
+      gh api /repos/<repo>/contents/knowledge --jq '.[].name' 2>/dev/null
+      ```
+      If relevant pages exist, fetch and include as a source in your draft:
+      ```
+      gh api /repos/<repo>/contents/knowledge/<file> --jq '.content' | base64 -d
+      ```
 
    c. **Search your own knowledge**
       Use any available vault, notes, or context to find a relevant answer.

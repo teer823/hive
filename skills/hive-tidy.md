@@ -1,6 +1,6 @@
 # hive-tidy
 
-Clean up stale issues and promote valuable answers to the GitHub Wiki.
+Clean up stale issues and promote valuable answers to the knowledge archive.
 
 ## When to use
 When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at end of quarter or when issue volume feels high.
@@ -9,7 +9,7 @@ When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at en
 
 ### Part 1: Close stale answered issues
 
-1. **Read roster**
+1. **Read local roster**
    Read `~/.hive/roster.yml`. Extract `repo`.
 
 2. **Fetch old answered issues**
@@ -50,7 +50,7 @@ When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at en
 
 ---
 
-### Part 3: Promote to Wiki
+### Part 3: Promote to knowledge archive
 
 1. **Fetch closed issues with comments but no hive-promoted label**
    ```
@@ -63,13 +63,21 @@ When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at en
    ```
 
 2. **For each issue, show the answer and ask**
-   "Promote this answer to the Wiki? (yes / no)"
+   "Promote this answer to /knowledge? (yes / no)"
    Show: issue title, first comment body.
 
-3. **On approval: create Wiki page**
-   Create a file locally:
+3. **On approval: create knowledge page**
+   Slugify the title: lowercase, spaces → hyphens, remove `[ASK]` prefix and special chars.
+
+   Fetch the top comment:
+   ```
+   gh issue view <number> --repo <repo> --json comments \
+     --jq '.comments[0].body'
+   ```
+
+   Create the file locally at `/tmp/hive-knowledge-<slug>.md`:
    ```markdown
-   # <Issue Title without [ASK] prefix>
+   # <Title without [ASK] prefix>
 
    > Last updated: <today YYYY-MM-DD> | Source: #<issue-number>
 
@@ -83,18 +91,12 @@ When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at en
    - Issue #<number>
    ```
 
-   Push to wiki:
+   Push to `/knowledge/<slug>.md` in the repo:
    ```
-   gh api --method PUT \
-     /repos/<repo>/contents/wiki/<slug>.md \
-     --field message="Promote #<number> to wiki" \
-     --field content="$(base64 < <file>)"
-   ```
-   Or clone the wiki repo and push:
-   ```
-   git clone https://github.com/<repo>.wiki.git /tmp/hive-wiki
-   cp <file> /tmp/hive-wiki/<slug>.md
-   cd /tmp/hive-wiki && git add . && git commit -m "Promote #<number>" && git push
+   gh api --method PUT /repos/<repo>/contents/knowledge/<slug>.md \
+     --field message="Promote #<number> to knowledge archive" \
+     --field content="$(base64 < /tmp/hive-knowledge-<slug>.md)"
+   rm /tmp/hive-knowledge-<slug>.md
    ```
 
 4. **Update issue labels**
@@ -102,13 +104,28 @@ When the user says "tidy hive", "clean up hive", or runs `/hive-tidy`. Run at en
    gh issue edit <number> --repo <repo> --add-label hive-promoted
    ```
 
-5. **Update Wiki Home.md**
-   Add a one-liner to the index:
+5. **Update knowledge/README.md index**
+   Fetch current README (create if missing):
    ```
-   - [[<Title>]] — <one-line summary> (from #<number>)
+   gh api /repos/<repo>/contents/knowledge/README.md \
+     --jq '.content' | base64 -d > /tmp/hive-knowledge-index.md 2>/dev/null \
+     || echo "# hive Knowledge Archive\n\n## Index\n" > /tmp/hive-knowledge-index.md
+   ```
+   Append one-liner:
+   ```
+   echo "- [<Title>](/<slug>.md) — <one-line summary> (from #<number>)" >> /tmp/hive-knowledge-index.md
+   ```
+   Push updated index:
+   ```
+   SHA=$(gh api /repos/<repo>/contents/knowledge/README.md --jq '.sha' 2>/dev/null || echo "")
+   gh api --method PUT /repos/<repo>/contents/knowledge/README.md \
+     --field message="Update knowledge index" \
+     --field content="$(base64 < /tmp/hive-knowledge-index.md)" \
+     $([ -n "$SHA" ] && echo "--field sha=$SHA")
+   rm /tmp/hive-knowledge-index.md
    ```
 
 ## Notes
 - Never promote without user approval — always show the draft first
-- Slugify the title for the wiki filename: lowercase, spaces → hyphens, remove special chars
-- Keep wiki pages generic — remove any personal names or org-specific references before promoting
+- Slugify the title for the filename: lowercase, spaces → hyphens, remove special chars
+- Keep knowledge pages generic — remove personal names or org-specific references before promoting
