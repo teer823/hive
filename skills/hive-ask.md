@@ -7,26 +7,37 @@ When the user says "ask [colleague]", "send a request to [colleague]", or "hive 
 
 ## Steps
 
-1. **Read roster**
-   Read `~/.hive/roster.yml`. Extract `repo` and the `github` username for the named colleague.
-   If the colleague is not in the roster, stop and tell the user.
+1. **Read local roster**
+   Read `~/.hive/roster.yml`. Extract `repo` and `me`.
 
-2. **Search Wiki for existing answer**
-   Run: `gh api /repos/<repo>/git/trees/HEAD:wiki --jq '.tree[].path' 2>/dev/null`
-   If relevant wiki pages exist, surface them to the user and ask if they still want to create an issue.
+2. **Read shared member list**
+   Fetch `members.yml` from the repo:
+   ```
+   gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d
+   ```
+   Parse the `members` list to find the named colleague's `github` username.
+   If the colleague is not found, stop and tell the user. Suggest running `/hive-sync` to refresh.
 
-3. **Check for duplicate open issues**
-   Run: `gh issue list --repo <repo> --label hive-ask --state open --json number,title`
-   If a similar title exists, show it to the user and ask if they want to proceed anyway.
+3. **Search Wiki for existing answer**
+   ```
+   gh api /repos/<repo>/wiki/pages 2>/dev/null
+   ```
+   If relevant wiki pages exist, surface them and ask if the user still wants to create an issue.
 
-4. **Confirm request details with user**
+4. **Check for duplicate open issues**
+   ```
+   gh issue list --repo <repo> --label hive-ask --state open --json number,title
+   ```
+   If a similar title exists, show it and ask if the user wants to proceed anyway.
+
+5. **Confirm request details with user**
    Show:
    - Assignee: <colleague display name> (@<github-username>)
    - Topic: <topic label>
    - Summary of the request body
    Ask the user to confirm before creating.
 
-5. **Create the issue**
+6. **Create the issue**
    ```
    gh issue create \
      --repo <repo> \
@@ -42,12 +53,12 @@ When the user says "ask [colleague]", "send a request to [colleague]", or "hive 
      --assignee <github-username> \
      --label "hive-ask,topic:<topic>"
    ```
-   If the current quarter milestone exists, add `--milestone <quarter>` (e.g. `2026-Q3`).
+   If the current quarter milestone exists, add `--milestone <quarter>`.
 
-6. **Report back**
+7. **Report back**
    Tell the user the issue URL and number.
 
 ## Notes
 - Keep the issue body tool-agnostic — no Claude-specific formatting
 - If no topic is specified, use `topic:general`
-- Do not hardcode the repo — always read from `~/.hive/roster.yml`
+- Always read members from the repo's `members.yml`, not local file

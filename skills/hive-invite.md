@@ -1,56 +1,76 @@
 # hive-invite
 
 Invite a colleague to collaborate on the team's hive repo.
+- **Owner:** sends the invite directly and updates members.yml
+- **Participant:** sends a permission request to the owner via a hive issue
 
 ## When to use
 When the user says "invite [name] to hive", "add [colleague] to hive", or runs `/hive-invite`.
 
 ## Steps
 
-1. **Read roster**
+1. **Read local roster**
    Read `~/.hive/roster.yml`. Extract `repo` and `me`.
 
 2. **Collect colleague details**
    Ask the user for both:
-   - Display name (e.g. "Somchai") — used in the roster
-   - GitHub username or email — used for the invite
+   - Display name (e.g. "Somchai") — used in members.yml
+   - GitHub username — used for the invite
 
    If the user already provided these in their message, use those values directly without asking again.
 
-3. **Confirm the invite**
+3. **Check if user is owner**
+   Run:
+   ```
+   gh api /repos/<repo> --jq '.owner.login'
+   ```
+   Compare to `me` from the local roster.
+
+   - If `me` == owner → follow **Owner flow** below
+   - If `me` != owner → follow **Participant flow** below
+
+---
+
+### Owner flow
+
+4. **Confirm the invite**
    Show:
    - Repo: <repo>
    - Name: <display name>
-   - GitHub: <github-username or email>
+   - GitHub: <github-username>
    - Permission: write
-   Ask: "Send invite and add to roster? (yes / no)"
+   Ask: "Send invite and add to members.yml? (yes / no)"
 
-4. **Send the invite**
-   By GitHub username:
+5. **Send the invite**
    ```
    gh api \
      --method PUT \
      /repos/<repo>/collaborators/<github-username> \
      --field permission=write
    ```
-   By email (if username unknown):
-   ```
-   gh api \
-     --method POST \
-     /repos/<repo>/invitations \
-     --field email=<email>
-   ```
 
-5. **Add to local roster**
-   Append to `~/.hive/roster.yml`:
+6. **Add to shared members.yml in repo**
+   Fetch current file and sha:
+   ```
+   gh api /repos/<repo>/contents/members.yml --jq '.sha' > /tmp/hive-members-sha
+   gh api /repos/<repo>/contents/members.yml --jq '.content' | base64 -d > /tmp/hive-members.yml
+   ```
+   Append new member:
    ```yaml
      - name: <display name>
        github: <github-username>
    ```
-   Do this automatically on approval — no separate prompt needed.
+   Push updated file:
+   ```
+   gh api --method PUT /repos/<repo>/contents/members.yml \
+     --field message="Add <display name> to members" \
+     --field content="$(base64 < /tmp/hive-members.yml)" \
+     --field sha="$(cat /tmp/hive-members-sha)"
+   rm /tmp/hive-members.yml /tmp/hive-members-sha
+   ```
 
-6. **Confirm and share onboarding instructions**
-   Tell the user: "Invite sent to <display name> (@<github-username>) and added to your roster. Share these setup steps with them:"
+7. **Share onboarding instructions**
+   Tell the user: "Invite sent to <display name> (@<github-username>) and added to members.yml. Share these steps with them:"
 
    ---
    **hive setup for new participants:**
@@ -61,12 +81,52 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 
    **Steps:**
    1. Accept the GitHub repo invite (check your email)
-   2. Open `ONBOARDING.md` in the repo: `https://github.com/<repo>/blob/main/ONBOARDING.md`
-   3. Copy the bootstrap prompt and paste it into your AI assistant — it will set everything up automatically
+   2. Open `ONBOARDING.md`: `https://github.com/<repo>/blob/main/ONBOARDING.md`
+   3. Copy the bootstrap prompt and paste it into your AI assistant
    ---
 
+---
+
+### Participant flow
+
+4. **Confirm the request**
+   Show:
+   - Requesting invite for: <display name> (@<github-username>)
+   - A permission request will be sent to the repo owner
+   Ask: "Send this request to the owner? (yes / no)"
+
+5. **Create a permission-request issue assigned to owner**
+   Fetch owner username:
+   ```
+   gh api /repos/<repo> --jq '.owner.login'
+   ```
+   Create issue:
+   ```
+   gh issue create \
+     --repo <repo> \
+     --title "[ASK] Permission to invite @<github-username>" \
+     --body "## Request
+   Requesting permission to invite a new member to ibmdt-hive.
+
+   - **Name:** <display name>
+   - **GitHub:** @<github-username>
+   - **Requested by:** @<me>
+
+   ## Context
+   Please approve by running /hive-invite <github-username> <display name> if you agree.
+
+   ## Topic
+   general" \
+     --assignee <owner-github-username> \
+     --label "hive-ask,topic:general"
+   ```
+
+6. **Report back**
+   Tell the user: "Permission request sent to the owner. They'll be notified via /hive-inbox and can approve by running /hive-invite."
+
+---
+
 ## Notes
-- Always collect display name AND GitHub username before proceeding — both are needed
-- Only the repo owner can invite — if the user is not the owner, this will fail with a 403
+- Only the repo owner can send the actual GitHub invite — participants must request permission
 - The invite expires after 7 days if not accepted
-- Roster update happens automatically on confirmation — no separate prompt
+- members.yml in the repo is the source of truth — all collaborators see it automatically
