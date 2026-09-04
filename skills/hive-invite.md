@@ -39,10 +39,16 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
    ---
    **hive setup for new participants:**
 
+   **Prerequisites:**
+   - Install GitHub CLI: `brew install gh` (Mac) or https://cli.github.com
+   - Authenticate: `gh auth login`
+
+   **Steps:**
    1. Accept the GitHub repo invite (check your email)
-   2. Clone or browse: `https://github.com/<repo>`
-   3. Copy `skills/*.md` to your AI assistant's skills/agents folder:
-      - Claude Code: `~/.claude/agents/`
+   2. Browse skills at: `https://github.com/<repo>/tree/main/skills`
+      (or clone: `gh repo clone <repo>`)
+   3. Copy `skills/*.md` to your AI assistant's commands folder:
+      - Claude Code: `~/.claude/commands/`
       - Cursor: `.cursor/rules/`
       - Copilot: workspace instructions
    4. Create `~/.hive/roster.yml`:
@@ -68,3 +74,4 @@ When the user says "invite [name] to hive", "add [colleague] to hive", or runs `
 - Only the repo owner can invite — if the user is not the owner, this will fail with a 403
 - The invite expires after 7 days if not accepted
 - Do not add anyone to the roster without the user's explicit confirmation
+- Colleagues without `gh` installed cannot use the skills — the onboarding instructions above cover this
