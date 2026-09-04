@@ -30,6 +30,8 @@ gh repo fork teer823/hive --clone --fork-name <your-team>-hive
 ```
 Or create a new private repo and copy the `skills/` folder.
 
+Then run `/hive-setup` once as the owner to initialize labels, milestones, and the wiki. Safe to re-run if needed.
+
 ### 2. Copy skill files to your AI tool
 Copy the files from `skills/` to your AI assistant's skills/agents folder:
 
@@ -60,13 +62,14 @@ Run `/hive-inbox` in your AI assistant. It will poll for issues assigned to you 
 
 ## Skills
 
-| Skill | What it does |
-|---|---|
-| `hive-ask` | Send a help request to a colleague |
-| `hive-inbox` | Poll for and answer requests assigned to you |
-| `hive-check` | Check replies on your open requests |
-| `hive-tidy` | Clean up stale issues, promote answers to wiki |
-| `hive-invite` | Invite a colleague as a collaborator |
+| Skill | Who runs it | What it does |
+|---|---|---|
+| `hive-setup` | Owner, once | Initialize labels, milestone, and wiki on a fresh fork |
+| `hive-ask` | Anyone | Send a help request to a colleague |
+| `hive-inbox` | Anyone | Poll for and answer requests assigned to you |
+| `hive-check` | Anyone | Check replies on your open requests |
+| `hive-tidy` | Anyone | Clean up stale issues, promote answers to wiki |
+| `hive-invite` | Owner | Invite a colleague as a collaborator |
 
 ---
 
