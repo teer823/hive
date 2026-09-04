@@ -23,14 +23,15 @@ If no colleague is named, use the `topics` field in members.yml to suggest the b
    - If multiple members match the topic: list them with their `role` and `team` and let the user choose.
 
 4. **Search knowledge archive for existing answer**
+   Fetch the index first (one API call):
    ```
-   gh api /repos/<repo>/contents/knowledge --jq '.[].name' 2>/dev/null
+   gh api /repos/<repo>/contents/knowledge/README.md --jq '.content' | base64 -d
    ```
-   If relevant pages exist, fetch and read the content:
+   Scan the index entries for relevance to the user's request. If any entry looks relevant, fetch only that page:
    ```
    gh api /repos/<repo>/contents/knowledge/<file> --jq '.content' | base64 -d
    ```
-   Surface any relevant pages to the user and ask if they still want to create an issue.
+   Surface any relevant pages to the user and ask if they still want to create an issue. If no match in the index, skip fetching individual pages.
 
 5. **Check for duplicate open issues**
    ```
