@@ -29,7 +29,18 @@ Also suggest running this when a colleague is not found during `/hive-ask`.
    ```
    For members with no optional fields, show only name and GitHub.
 
-4. **Report**
+4. **Check pending invitations**
+   ```
+   gh api /repos/<repo>/invitations --jq '.[] | {login: .invitee.login, invited_at: .created_at}'
+   ```
+   If any pending invites exist, show them below the member list:
+   ```
+   Pending invites (not yet accepted):
+   - @lukeatdesign — invited 2026-09-04
+   ```
+   Note: issue assignment won't work for pending users until they accept.
+
+5. **Report**
    Tell the user: "Use these names with /hive-ask. Topic-based routing will suggest the best match automatically."
 
 ## Notes
